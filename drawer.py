@@ -11,6 +11,7 @@ from scipy.integrate import odeint
 from sympy import Matrix
 from sympy.abc import x, y
 
+import matplotlib
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
@@ -63,6 +64,7 @@ def arrow_dyn3(xStart, xEnd, fig, ax, arrow_size, arrow_width, arrow_color, zOrd
     ys = [x0[1], xA[1]]
     zs = [x0[2], xA[2]]
     arrLine = plt.plot(xs, ys, zs, color=arrow_color, zorder=zOrder)
+    #kek = ax.quiver(x0[0], x0[1], x0[2], xA[0], xA[1], xA[2], length = 0.2, color = arrow_color, zorder = zOrder, normalize = True)
     testx = []
     testy = []
     testz = []
@@ -72,7 +74,7 @@ def arrow_dyn3(xStart, xEnd, fig, ax, arrow_size, arrow_width, arrow_color, zOrd
         testy.append(pt[1])
         testz.append(pt[2])
     verts = [list(zip(testx, testy, testz))]
-    arrHead = Poly3DCollection(verts, facecolor=arrow_color, edgecolor=arrow_color, alpha = 1)
+    arrHead = Poly3DCollection(verts, facecolor=arrow_color, edgecolor=arrow_color, alpha = 1, zorder=zOrder)
     ax.add_collection3d(arrHead)
     #ax.set_zlim(0, 0)
     #polyHead = Polygon([xA, xC, xB, xD])
@@ -81,15 +83,13 @@ def arrow_dyn3(xStart, xEnd, fig, ax, arrow_size, arrow_width, arrow_color, zOrd
     #arrHead = ax.fill(x, y, facecolor=arrow_color, edgecolor=arrow_color, zorder=zOrder)
     return arrLine+[arrHead]
 
+
 #def arrow_dyn3(xStart, xEnd, fig, ax, arrow_size, arrow_width, arrow_color, zOrder):
-#    cf=arrow_width
-#    af=arrow_size
-#    x0= xStart
-#    xA= xEnd
-#    quiv = ax.quiver(x0[0], x0[1], x0[2], xA[0], xA[1], xA[2], color='k', length=0.1, normalize=False)
+#    u = xEnd[0] - xStart[0]
+#    v = xEnd[1] - xStart[1]
+#    w = xEnd[2] - xStart[2]
+#    quiv = ax.quiver(xStart[0], xStart[1], xStart[2], u, v, w, length=0.05, color = arrow_color, zorder=zOrder, normalize = True)
 #    return [quiv]
-
-
 
 def setSimplex(strat1, strat2, strat3, ax, fontSize, zOrder):
     pt1 = eqsol.sim_to_p(0,0)
@@ -100,9 +100,9 @@ def setSimplex(strat1, strat2, strat3, ax, fontSize, zOrder):
     lbl3 = ax.text(pt3[0] - 0.1, pt3[1] - 0.022, 0, strat3, fontsize=fontSize, zorder = zOrder)
     xs = [[pt1[0], pt2[0]], [pt1[0], pt3[0]], [pt2[0], pt3[0]]]
     ys = [[pt1[1], pt2[1]], [pt1[1], pt3[1]], [pt2[1], pt3[1]]]
-    bdr1 = plt.plot(xs[0], ys[0], 0, color='black', zorder=zOrder)
-    bdr2 = plt.plot(xs[1], ys[1], 0, color='black', zorder=zOrder)
-    bdr3 = plt.plot(xs[2], ys[2], 0, color='black', zorder=zOrder)
+    bdr1 = plt.plot(xs[0], ys[0], 0, color='black', zorder=zOrder, alpha=1)
+    bdr2 = plt.plot(xs[1], ys[1], 0, color='black', zorder=zOrder, alpha=1)
+    bdr3 = plt.plot(xs[2], ys[2], 0, color='black', zorder=zOrder, alpha=1)
     return bdr1+bdr2+bdr3 + [lbl1] + [lbl2] + [lbl3]
 
 def numSdeSimplexGen3(x0, y0, payMtx, step, parr, Tmax, fig, ax, col, arrSize, arrWidth, zd):
@@ -154,7 +154,6 @@ def eqShowCompGen(payMtx, ax, colSnk, colSdl, colSce, ptSize, zd):
             numEqs[i][1] = 99
     #print("REAL?", numEqs)
     
-    
     #Compute eigenvalues of Jacobian evaluated at each equilibrium
     #print("numeqs", numEqs)
     for i in range(len(numEqs)):
@@ -170,10 +169,8 @@ def eqShowCompGen(payMtx, ax, colSnk, colSdl, colSce, ptSize, zd):
         w, v = np.linalg.eig(M)
         numEig.append(w)
     #Classify equilibria into sinks, saddles, sources, degenerate
-    print(numEig)
     for i in range(len(numEqs)):
         k=0
-        print(numEqs[i][0], numEqs[i][1])
         if (0<=numEqs[i][0]<=1 and 0<=numEqs[i][1]<=1):
                 if (numEig[i][0]>0 and numEig[i][1]>0):
                     k+=1
@@ -187,7 +184,6 @@ def eqShowCompGen(payMtx, ax, colSnk, colSdl, colSce, ptSize, zd):
                 else:
                     k+=1
                     sink += [eqsol.sim_to_p(numEqs[i][0],numEqs[i][1])];
-        print(k)
     #Plot equilibria
     sourcexs, sourceys, sourcezs = [], [], []
     saddlexs, saddleys, saddlezs = [], [], []
@@ -209,9 +205,38 @@ def eqShowCompGen(payMtx, ax, colSnk, colSdl, colSce, ptSize, zd):
         sinkxs.append(pt[0])
         sinkys.append(pt[1])
         sinkzs.append(pt[2])
-    pSink = ax.scatter(sinkxs, sinkys, sinkzs, s=ptSize, color=colSnk, marker='o', edgecolors='black', alpha=0.7, depthshade=False, zorder=zd)
-    pSource = ax.scatter(sourcexs, sourceys, sourcezs, s=ptSize, color=colSce, marker='o', edgecolors='black', alpha=0.7, depthshade=False, zorder=zd)
-    pSaddle = ax.scatter(saddlexs, saddleys, saddlezs, s=ptSize, color=colSdl, marker='o', edgecolors='black', alpha=0.7, depthshade=False, zorder=zd)
-    pUndet = ax.scatter(undetxs, undetys, undetzs, s=ptSize, color='gray', marker='o', edgecolors='black', alpha=0.7, depthshade=False, zorder=zd)
+    pSink = ax.scatter(sinkxs, sinkys, sinkzs, s=ptSize, color=colSnk, marker='o', edgecolors='black', alpha=1, depthshade=False, zorder=zd)
+    pSource = ax.scatter(sourcexs, sourceys, sourcezs, s=ptSize, color=colSce, marker='o', edgecolors='black', alpha=1, depthshade=False, zorder=zd)
+    pSaddle = ax.scatter(saddlexs, saddleys, saddlezs, s=ptSize, color=colSdl, marker='o', edgecolors='black', alpha=1, depthshade=False, zorder=zd)
+    pUndet = ax.scatter(undetxs, undetys, undetzs, s=ptSize, color='red', marker='o', edgecolors='black', alpha=1, depthshade=False, zorder=zd)
     #return [pSink] + [pSource] + [pSaddle] + [pUndet]
-    return source + saddle + undet + sink
+    return [source] + [saddle] + [sink] + [undet]
+
+def matrix_to_colors(matrix, cmap):
+    color_dimension = matrix # It must be in 2D - as for "X, Y, Z".
+    minn, maxx = color_dimension.min(), color_dimension.max()
+    norm = matplotlib.colors.Normalize(minn, maxx)
+    m = plt.cm.ScalarMappable(norm=norm, cmap = cmap)
+    m.set_array([])
+    fcolors = m.to_rgba(color_dimension)
+    return fcolors, m
+
+def speed_plot(x_region, y_region, z_region, step, payMtx, ax, cmap, levels, zorder):
+    x = np.linspace(x_region[0], x_region[1], step)
+    #y = np.linspace(0, np.sqrt(3/4), 150)
+    y = np.linspace(y_region[0], y_region[1], step)
+    #z = np.linspace(z_region[0], z_region[1], step)
+    X, Y = np.meshgrid(x, y)
+    #Z = np.zeros(X.shape)
+    remove_pts = eqsol.simplexboundaries2D(X, Y, 0.01) < 0
+    for i in range(len(X)):
+        for j in range(len(Y)):
+            if remove_pts[i][j]:
+                Y[i, j] = np.sqrt(3/4)/2
+                if X[i, j] <= 0.5:
+                    X[i, j] = 0.25
+                else:
+                    X[i, j] = 0.75
+    C = eqsol.speedGrid(X, Y, payMtx)
+    surf = ax.contourf(X, Y, C, zdir='z', offset=0, levels=levels, cmap=cmap, corner_mask = False, alpha=0.9)
+    return surf
