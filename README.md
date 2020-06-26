@@ -1,2 +1,3 @@
 # dynamight
-Python/Sagemath code for evolutionary game dynamics
+Python version of the code.
+Run simulations via simulate.py (for now)
