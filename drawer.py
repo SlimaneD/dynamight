@@ -221,6 +221,26 @@ def matrix_to_colors(matrix, cmap):
     fcolors = m.to_rgba(color_dimension)
     return fcolors, m
 
+#def speed_plot(x_region, y_region, z_region, step, payMtx, ax, cmap, levels, zorder):
+#    x = np.linspace(x_region[0], x_region[1], step)
+#    #y = np.linspace(0, np.sqrt(3/4), 150)
+#    y = np.linspace(y_region[0], y_region[1], step)
+#    #z = np.linspace(z_region[0], z_region[1], step)
+#    X, Y = np.meshgrid(x, y)
+#    #Z = np.zeros(X.shape)
+#    remove_pts = eqsol.simplexboundaries2D(X, Y, 0.01) < 0
+#    for i in range(len(X)):
+#        for j in range(len(Y)):
+#            if remove_pts[i][j]:
+#                Y[i, j] = np.sqrt(3/4)/2
+#                if X[i, j] <= 0.5:
+#                    X[i, j] = 0.25
+#                else:
+#                    X[i, j] = 0.75
+#    C = eqsol.speedGrid(X, Y, payMtx)
+#    surf = ax.contourf(X, Y, C, zdir='z', offset=0, levels=levels, cmap=cmap, corner_mask = False, alpha=0.9)
+#    return surf
+
 def speed_plot(x_region, y_region, z_region, step, payMtx, ax, cmap, levels, zorder):
     x = np.linspace(x_region[0], x_region[1], step)
     #y = np.linspace(0, np.sqrt(3/4), 150)
@@ -228,15 +248,8 @@ def speed_plot(x_region, y_region, z_region, step, payMtx, ax, cmap, levels, zor
     #z = np.linspace(z_region[0], z_region[1], step)
     X, Y = np.meshgrid(x, y)
     #Z = np.zeros(X.shape)
-    remove_pts = eqsol.simplexboundaries2D(X, Y, 0.01) < 0
-    for i in range(len(X)):
-        for j in range(len(Y)):
-            if remove_pts[i][j]:
-                Y[i, j] = np.sqrt(3/4)/2
-                if X[i, j] <= 0.5:
-                    X[i, j] = 0.25
-                else:
-                    X[i, j] = 0.75
+    #remove_pts = eqsol.simplexboundaries_bool(X, Y)
+    X, Y = eqsol.outofbounds_reproject(X, Y)
     C = eqsol.speedGrid(X, Y, payMtx)
     surf = ax.contourf(X, Y, C, zdir='z', offset=0, levels=levels, cmap=cmap, corner_mask = False, alpha=0.9)
     return surf

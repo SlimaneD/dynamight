@@ -34,6 +34,41 @@ def solGame(payMtx):
 def simplexboundaries2D(x, y, epsilon):
     return ((-(2*epsilon + np.sqrt(3))/(2*epsilon + 1))*x + (2*epsilon**2 + epsilon*(np.sqrt(3) + 2) + np.sqrt(3))/(2*epsilon + 1) - y)*(((2*epsilon + np.sqrt(3))/(2*epsilon + 1))*x + (2*epsilon**2 + np.sqrt(3)*epsilon)/(2*epsilon + 1) - y);
 
+def simplexboundaries_bool(X, Y): # returns boolean matrix : True iif point is out of simplex.
+    bool_mtx = np.zeros(X.shape)
+    for i in range(len(X)):
+        for j in range(len(X)):
+            if X[i, j]<=0.5:
+                if Y[i, j]>2*np.sqrt(3/4)*X[i, j]:
+                    bool_mtx[i, j] = True
+                else: bool_mtx[i, j] = False
+            elif X[i, j]>0.5:
+                if Y[i, j]>2*np.sqrt(3/4)*(1-X[i, j]):
+                    bool_mtx[i, j] = True
+                else: bool_mtx[i, j] = False
+            else: bool_mtx[i, j] = False
+    return bool_mtx
+
+def outofbounds_reproject(X, Y): # applies orthogonal reprojection to the simplex for out of bounds points
+    bool_mtx = simplexboundaries_bool(X, Y)
+    for i in range(len(X)):
+        for j in range(len(Y)):
+            if bool_mtx[i][j]:
+                if X[i, j] < 0.5:
+                    xB, yB = 0, 0
+                    xV, yV = 1, 2*np.sqrt(3/4)
+                    BH = ((X[i, j] - xB)*xV + (Y[i, j] - yB)*yV)/(np.sqrt(xV**2 + yV**2))
+                    X[i, j] = xB + (BH/np.sqrt(xV**2 + yV**2))*xV
+                    Y[i, j] = 2*np.sqrt(3/4)*X[i, j]
+                elif X[i, j] > 0.5:
+                    xB, yB = 0.5, np.sqrt(3/4)
+                    xV, yV = 1, -2*np.sqrt(3/4)
+                    BH = ((X[i, j] - xB)*xV + (Y[i, j] - yB)*yV)/(np.sqrt(xV**2 + yV**2))
+                    X[i, j] = xB + (BH/np.sqrt(xV**2 + yV**2))*xV
+                    Y[i, j] = 2*np.sqrt(3/4)*(1 - X[i, j])
+    return X, Y
+    
+    
 def speedS(x, y, payMtx):
     calc = dyn.repDyn3Speed(p_to_sim(x, y)[0], p_to_sim(x, y)[1], payMtx)
     return np.linalg.norm(calc)
