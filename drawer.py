@@ -111,7 +111,7 @@ def setSimplex(strat, payMtx, ax, fontSize, zOrder):
         
 
 def numSdeSimplexGen3(x0, y0, payMtx, step, parr, Tmax, fig, ax, col, arrSize, arrWidth, zd):
-    t = np.linspace(0, Tmax, Tmax/step)
+    t = np.linspace(0, Tmax, int(Tmax/step))
     if payMtx[0].shape == (3,): #S_2P3S
         sol = odeint(dynamics.repDyn3, [x0, y0], t, (payMtx,))
         solRev = odeint(dynamics.repDyn3Rev, [x0, y0], t, (payMtx,))
