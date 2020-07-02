@@ -1,3 +1,5 @@
 # dynamight
 Python version of the code.
-Run simulations via simulate.py (for now)
+
+Execute code from main.py.
+Choose the desired simulation from console user input.
