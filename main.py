@@ -5,7 +5,6 @@ Created on Wed Jul  1 12:30:08 2020
 @author: Benjamin Giraudon
 """
 
-import time
 import simulate
 
 def main():

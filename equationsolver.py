@@ -22,14 +22,21 @@ def solC(x_F, y_F, i_p, s, c):
     """Returns the desired coordinates for the arrow polygon edge C or D"""
     return [[(s**2*x_F + i_p*s - s*y_F - np.sqrt(-s**2*y_F**2 + (c**2 - i_p**2)*s**2 + 2*i_p*s*x_F + c**2 - x_F**2 + 2*(i_p*s**2 - s*x_F)*y_F)*s)/(s**2 + 1),(i_p*s**2 - s*x_F + y_F + np.sqrt(-s**2*y_F**2 + (c**2 - i_p**2)*s**2 + 2*i_p*s*x_F + c**2 - x_F**2 + 2*(i_p*s**2 - s*x_F)*y_F))/(s**2 + 1)],[(s**2*x_F + i_p*s - s*y_F + np.sqrt(-s**2*y_F**2 + (c**2 - i_p**2)*s**2 + 2*i_p*s*x_F + c**2 - x_F**2 + 2*(i_p*s**2 - s*x_F)*y_F)*s)/(s**2 + 1),(i_p*s**2 - s*x_F + y_F - np.sqrt(-s**2*y_F**2 + (c**2 - i_p**2)*s**2 + 2*i_p*s*x_F + c**2 - x_F**2 + 2*(i_p*s**2 - s*x_F)*y_F))/(s**2 + 1)]]
 
-def sim_to_p(x,y):
-    "Converts coordinates from simplex to strategies in 2P3S games."
-    return [-(1/2)*x+1-y, (np.sqrt(3)/2)*x, 0]
-    
-def p_to_sim(x,y):
-    "Converts strategies to coordinates in simplex for 2P3S games."
-    return [2/3*np.sqrt(3)*y, -1/3*np.sqrt(3)*y - x + 1, 0]
+def sim_to_p(x, y):
+    "Converts strategy from simplex to coordinates in 2P3S plane."
+    return [-0.5*x -y + 1, (np.sqrt(3)/2)*x]
 
+def p_to_sim(x, y):
+    "Converts coordinates in 2P3S plane to strategy from simplex."
+    return [2/3*np.sqrt(3)*y, -1/3*np.sqrt(3)*y - x + 1]
+
+def sim_to_p_2P4S(x, y, z):
+    "Converts strategy from simplex to coordinates in 2P4S space."
+    return [0.5*(-y + z + 1), np.sqrt(3)/4*(x - y - z + 1) , -np.sqrt(13)/4*(x + y + z - 1)]
+
+def p_to_sim_2P4S(x, y, z):
+    "Converts coordinates in 2P4S space to strategy from simplex."
+    return [2*(np.sqrt(3)/3*y - np.sqrt(13)/13*z), -x + np.sqrt(3)/3*y -np.sqrt(13)/13*z + 1, x + np.sqrt(3)/3*y -np.sqrt(13)/13*z]
 
 def solGame(payMtx):
     "Computes solutions for the game."
@@ -41,12 +48,26 @@ def solGame(payMtx):
         second_eq = dyn.repDyn3([x, y], t, payMtx)[1]
         third_eq = sum(dyn.repDyn3([x, y], t, payMtx))
         sol_dict = solve([first_eq, second_eq, third_eq], x, y, dict=True)
+        solutions = [[np.float(elt[x]), np.float(elt[y])] for elt in sol_dict]
     elif payMtx[0].shape == (2, 2):
         payMtxS1, payMtxS2 = payMtx
         first_eq = dyn.repDyn22([x, y], t, payMtxS1)
         second_eq = dyn.repDyn22([y, x], t, payMtxS2)
         sol_dict = solve([first_eq, second_eq], x, y, dict=True)
-    solutions = [[np.float(elt[x]), np.float(elt[y])] for elt in sol_dict]
+        solutions = [[np.float(elt[x]), np.float(elt[y])] for elt in sol_dict]
+    elif payMtx[0].shape == (4,):
+        z = Symbol('z')
+        first_eq = dyn.repDyn4([x, y, z], t, payMtx)[0]
+        second_eq = dyn.repDyn4([x, y, z], t, payMtx)[1]
+        third_eq = dyn.repDyn4([x, y, z], t, payMtx)[2]
+        fourth_eq = sum(dyn.repDyn4([x, y, z], t, payMtx))
+        sol_dict = solve([first_eq, second_eq, third_eq, fourth_eq], x, y, z, dict=True)
+        print(sol_dict)
+        solutions = []
+        for elt in sol_dict:
+            if len(elt)==3:
+                solutions.append([np.float(elt[x]), np.float(elt[y]), np.float(elt[z])])
+#        solutions = [[np.float(elt[x]), np.float(elt[y]), np.float(elt[z])] for elt in sol_dict]
     return solutions
     
 def simplexboundaries_bool(X, Y):
@@ -84,7 +105,6 @@ def outofbounds_reproject(X, Y):
                     X[i, j] = xB + (BH/np.sqrt(xV**2 + yV**2))*xV
                     Y[i, j] = 2*np.sqrt(3/4)*(1 - X[i, j])
     return X, Y
-    
     
 def speedS(x, y, payMtx):
     "Computes speeds in the replicator dynamics for a 2P3S game."
