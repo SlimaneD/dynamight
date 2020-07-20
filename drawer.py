@@ -90,9 +90,9 @@ def arrow_dyn3(xStart, xEnd, fig, ax, arrow_size, arrow_width, arrow_color, zOrd
 def setSimplex(strat, payMtx, ax, fontSize, zOrder):
     """Draws the simplex frame."""
     if payMtx[0].shape == (3,):
-        pt1 = eqsol.sim_to_p(1,0)
-        pt2 = eqsol.sim_to_p(0,1)
-        pt3 = eqsol.sim_to_p(0,0)
+        pt1 = eqsol.p_to_sim(1,0)
+        pt2 = eqsol.p_to_sim(0,1)
+        pt3 = eqsol.p_to_sim(0,0)
         lbl1 = ax.annotate(strat[0], (pt1[0] - 0.01, pt1[1] + 0.04), fontsize=fontSize, zorder = zOrder)
         lbl2 = ax.annotate(strat[1], (pt2[0] - 0.05, pt2[1] - 0.01), fontsize=fontSize, zorder = zOrder)
         lbl3 = ax.annotate(strat[2], (pt3[0] + 0.02, pt3[1] - 0.01), fontsize=fontSize, zorder = zOrder)
@@ -142,11 +142,11 @@ def trajectory(X0, payMtx, step, parr, Tmax, fig, ax, col, arrSize, arrWidth, zd
         solXrev=[]
         solYrev=[]
         for pt in sol:
-            cPt = eqsol.sim_to_p(pt[0], pt[1])
+            cPt = eqsol.p_to_sim(pt[0], pt[1])
             solX.append(cPt[0])
             solY.append(cPt[1])
         for pt in solRev:
-            cPt = eqsol.sim_to_p(pt[0],pt[1])
+            cPt = eqsol.p_to_sim(pt[0],pt[1])
             solXrev.append(cPt[0])
             solYrev.append(cPt[1])
         psol = plt.plot(solX, solY, color=col, zorder=zd)
@@ -285,10 +285,12 @@ def equilibria(payMtx, ax, colSnk, colSdl, colSce, ptSize, zd):
     for i in range(len(numEqs)): # Classify equilibria
         numEqs[i] = [round(num, 10) for num in numEqs[i]]
         numEig[i] = [round(num, 12) for num in numEig[i]]
-        print("FP", [round(num, 2) for num in numEqs[i]], "| eigVs", [round(num, 2) for num in numEig[i]])
         if payMtx[0].shape == (2, 2): point_to_plot = np.array([numEqs[i][0], numEqs[i][1]])
-        elif payMtx[0].shape == (3,): point_to_plot = np.array(eqsol.sim_to_p(numEqs[i][0] , numEqs[i][1]))
+        elif payMtx[0].shape == (3,): 
+            point_to_plot = np.array(eqsol.p_to_sim(numEqs[i][0] , numEqs[i][1]))
+            numEqs[i].append(1 - numEqs[i][0] - numEqs[i][1])
         elif payMtx[0].shape == (4,): point_to_plot = np.array(eqsol.sim_to_p_2P4S(numEqs[i][0] , numEqs[i][1], numEqs[i][2]))
+        print("FP", [round(num, 2) for num in numEqs[i]], "| eigVs", [round(num, 2) for num in numEig[i]])
         if (0<=numEqs[i][0]<=1 and 0<=numEqs[i][1]<=1):
             l1, l2 = numEig[i][0], numEig[i][1]
             suml, prodl = l1+l2, l1*l2
@@ -362,15 +364,11 @@ def matrix_to_colors(matrix, cmap):
     fcolors = m.to_rgba(color_dimension)
     return fcolors, m
 
-def speed_plot(x_region, y_region, z_region, step, payMtx, ax, cmap, levels, zorder):
+def speed_plot(x_region, y_region, step, payMtx, ax, cmap, levels, zorder):
     """Plots game dynamics (speed of movement in the simplex)"""
     x = np.linspace(x_region[0], x_region[1], step)
-#    y = np.linspace(0, np.sqrt(3/4), 150)
     y = np.linspace(y_region[0], y_region[1], step)
-#    z = np.linspace(z_region[0], z_region[1], step)
     X, Y = np.meshgrid(x, y)
-#    Z = np.zeros(X.shape)
-#    remove_pts = eqsol.simplexboundaries_bool(X, Y)
     X, Y = eqsol.outofbounds_reproject(X, Y)
     C = eqsol.speedGrid(X, Y, payMtx)
     surf = ax.contourf(X, Y, C, levels=levels, cmap=cmap, corner_mask = False, alpha=0.9)

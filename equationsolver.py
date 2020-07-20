@@ -22,11 +22,11 @@ def solC(x_F, y_F, i_p, s, c):
     """Returns the desired coordinates for the arrow polygon edge C or D"""
     return [[(s**2*x_F + i_p*s - s*y_F - np.sqrt(-s**2*y_F**2 + (c**2 - i_p**2)*s**2 + 2*i_p*s*x_F + c**2 - x_F**2 + 2*(i_p*s**2 - s*x_F)*y_F)*s)/(s**2 + 1),(i_p*s**2 - s*x_F + y_F + np.sqrt(-s**2*y_F**2 + (c**2 - i_p**2)*s**2 + 2*i_p*s*x_F + c**2 - x_F**2 + 2*(i_p*s**2 - s*x_F)*y_F))/(s**2 + 1)],[(s**2*x_F + i_p*s - s*y_F + np.sqrt(-s**2*y_F**2 + (c**2 - i_p**2)*s**2 + 2*i_p*s*x_F + c**2 - x_F**2 + 2*(i_p*s**2 - s*x_F)*y_F)*s)/(s**2 + 1),(i_p*s**2 - s*x_F + y_F - np.sqrt(-s**2*y_F**2 + (c**2 - i_p**2)*s**2 + 2*i_p*s*x_F + c**2 - x_F**2 + 2*(i_p*s**2 - s*x_F)*y_F))/(s**2 + 1)]]
 
-def sim_to_p(x, y):
+def p_to_sim(x, y):
     "Converts strategy from simplex to coordinates in 2P3S plane."
     return [-0.5*x -y + 1, (np.sqrt(3)/2)*x]
 
-def p_to_sim(x, y):
+def sim_to_p(x, y):
     "Converts coordinates in 2P3S plane to strategy from simplex."
     return [2/3*np.sqrt(3)*y, -1/3*np.sqrt(3)*y - x + 1]
 
@@ -62,7 +62,6 @@ def solGame(payMtx):
         third_eq = dyn.repDyn4([x, y, z], t, payMtx)[2]
         fourth_eq = sum(dyn.repDyn4([x, y, z], t, payMtx))
         sol_dict = solve([first_eq, second_eq, third_eq, fourth_eq], x, y, z, dict=True)
-        print(sol_dict)
         solutions = []
         for elt in sol_dict:
             if len(elt)==3:
@@ -108,7 +107,7 @@ def outofbounds_reproject(X, Y):
     
 def speedS(x, y, payMtx):
     "Computes speeds in the replicator dynamics for a 2P3S game."
-    calc = dyn.repDyn3Speed(p_to_sim(x, y)[0], p_to_sim(x, y)[1], payMtx)
+    calc = dyn.repDyn3Speed(sim_to_p(x, y)[0], sim_to_p(x, y)[1], payMtx)
     return np.linalg.norm(calc)
 
 def speedGrid(X, Y, payMtx):
